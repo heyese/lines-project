@@ -49,7 +49,7 @@ def take_turn(moves,move_taken):
   return moves_copy
 
 
-def list_games(moves_list):
+def list_all_my_games(moves_list):
   # Returns a list of lists, each list is a game
   remaining_moves = moves_list[:]
   if len(remaining_moves) <= 1:
