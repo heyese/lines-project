@@ -1,4 +1,4 @@
-
+# This is a new comment
 # List the defined functions
 print "moves_list(total,max)"
 print "take_turn(moves,move_taken)"
