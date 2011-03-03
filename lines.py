@@ -1,4 +1,4 @@
-# This is a new comment and the start of the file!
+# This is a new comment and the start of the file, obviously!
 # List the defined functions
 print "moves_list(total,max)"
 print "take_turn(moves,move_taken)"
