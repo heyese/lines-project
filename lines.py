@@ -1,4 +1,4 @@
-# This is a new comment
+# This is a new comment and the start of the file!
 # List the defined functions
 print "moves_list(total,max)"
 print "take_turn(moves,move_taken)"
@@ -9,6 +9,7 @@ print "poss_partitions(partition,max_adj_lines)"
 print "win_or_lose(partition,max_adj)"
 print "winning_sub_parts(partition,max_adj)"
 print "losing_sub_parts(partition,max_adj)"
+
 
 # Given the total number of lines in the game and the maximum number of adjacent lines you're allowed to cross off in a single go,
 # moves_list() returns a complete list of the possible moves in the game (given as tuples).
