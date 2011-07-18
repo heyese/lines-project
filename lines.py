@@ -278,6 +278,9 @@ def win_or_lose(partition, max_adj):
   # Right guys, this is the daddy.  Given a position, can I win?
   # Like list_games, this is iterative, but we've used the idea of partitions and hopefully a hash table to try and speed it up.
   
+  # win_or_lose on any empty partition should be a winning position - if it's your turn and there are no moves left, you've won.
+  if len(partition) == 0 : return 1
+  
   # First, the special case:
   if len(partition) == 1 and sorted(partition)[0] <= max_adj + 1:
     if 1 < sorted(partition)[0]:
@@ -296,6 +299,9 @@ win_or_lose_v2_hash = {}
 def win_or_lose_v2(partition, max_adj):
   # Right guys, this is the daddy.  Given a position, can I win?
   # Like list_games, this is iterative, but we've used the idea of partitions and hopefully a hash table to try and speed it up.
+  
+  # win_or_lose on any empty partition should be a winning position - if it's your turn and there are no moves left, you've won.
+  if len(partition) == 0 : return 1
   
   # First, the special case:
   if len(partition) == 1 and sorted(partition)[0] <= max_adj + 1:
@@ -357,7 +363,12 @@ def jumble(partition):
 # moves_list - a list of the currently available moves
 # 
 
+
+#  There's a bug!!  When we get to the last moves of the game, the winning and losing functions stop working properly.
+
+
 class lines:   # class(partition,max_adj)
+  import random
   def __init__(self,partition,max_adj):
     # I think it's best to have as few attributes as possible and use methods to calculate what's asked for
     # based on these values when possible.
@@ -419,6 +430,15 @@ class lines:   # class(partition,max_adj)
       random.shuffle(losing_moves)  #  This is so that we make a random winning move
       self.game_take_turn(losing_moves[0])
     else: return -1
+  
+  def game_board_display(self):
+    lines_crossed_off = [ line for move in self.moves_history for line in move ]
+    total_lines = sorted(lines_crossed_off + self.board)
+    graphic = []
+    for i in total_lines:
+      if i in self.board: graphic.append(' I ')
+      else: graphic.append(' X ')
+    return graphic
   
   ################# Private functions ################################################
   def moves_list_special(self,total,max):
@@ -522,6 +542,7 @@ class lines:   # class(partition,max_adj)
     partition = []
     single_lines = []
     length = 0
+    if len(moves_list) == 0: return []
     # First step - make a list of the available single moves
     for move in sorted(moves_list):
       if len(move) == 1: single_lines.append(move[0])
@@ -674,14 +695,18 @@ class lines:   # class(partition,max_adj)
     # Right guys, this is the daddy.  Given a position, can I win?
     # Like list_games, this is iterative, but we've used the idea of partitions and hopefully a hash table to try and speed it up.
     
-    # First, the special case:
+    # win_or_lose on any empty partition should be a winning position - if it's your turn and there are no moves left, you've won.
+    if len(partition) == 0 : return 1
+    
+    # First, the special cases:
     if len(partition) == 1 and sorted(partition)[0] <= max_adj + 1:
       if 1 < sorted(partition)[0]:
         return 1  # If you can cross off all but the last line on your go, you've won
       else: return -1  # if there's only one line left, I'm afraid you're forced to cross it off and you've lost
     
+    
     # Now the general case:
-    for part in poss_partitions(sorted(partition), max_adj):
+    for part in self.poss_partitions(sorted(partition), max_adj):
       if tuple(part) not in win_or_lose_hash:
         win_or_lose_hash[tuple(part)] = win_or_lose(part, max_adj) # I don't know what the syntax is, but building up a DB of winners / losers should help speed this up a lot
       if win_or_lose_hash[tuple(part)] == -1:
@@ -693,6 +718,9 @@ class lines:   # class(partition,max_adj)
     # Right guys, this is the daddy.  Given a position, can I win?
     # Like list_games, this is iterative, but we've used the idea of partitions and hopefully a hash table to try and speed it up.
     
+    # win_or_lose on any empty partition should be a winning position - if it's your turn and there are no moves left, you've won.
+    if len(partition) == 0 : return 1
+    
     # First, the special case:
     if len(partition) == 1 and sorted(partition)[0] <= max_adj + 1:
       if 1 < sorted(partition)[0]:
@@ -700,7 +728,7 @@ class lines:   # class(partition,max_adj)
       else: return -1  # if there's only one line left, I'm afraid you're forced to cross it off and you've lost
     
     # Now the general case:
-    for part in poss_partitions_v2(sorted(partition), max_adj):
+    for part in self.poss_partitions_v2(sorted(partition), max_adj):
       if tuple(part) not in win_or_lose_v2_hash:
         win_or_lose_v2_hash[tuple(part)] = win_or_lose_v2(part, max_adj) # I don't know what the syntax is, but building up a DB of winners / losers should help speed this up a lot
       if win_or_lose_v2_hash[tuple(part)] == -1:
@@ -709,17 +737,17 @@ class lines:   # class(partition,max_adj)
     
     
   def winning_sub_parts(self, partition, max_adj):
-    list = poss_partitions(sorted(partition),max_adj)
+    list = self.poss_partitions(sorted(partition),max_adj)
     new_list = []
     for entry in list: 
-      if win_or_lose(entry, max_adj) == 1: new_list.append(entry)
+      if self.win_or_lose(entry, max_adj) == 1: new_list.append(entry)
     return new_list
 
   def losing_sub_parts(self, partition, max_adj):
-    list = poss_partitions(sorted(partition),max_adj)
+    list = self.poss_partitions(sorted(partition),max_adj)
     new_list = []
     for entry in list: 
-      if win_or_lose(entry, max_adj) == -1: new_list.append(entry)
+      if self.win_or_lose(entry, max_adj) == -1: new_list.append(entry)
     return new_list
 
   def part2board(self, partition):
