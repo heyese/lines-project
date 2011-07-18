@@ -364,8 +364,6 @@ def jumble(partition):
 # 
 
 
-#  There's a bug!!  When we get to the last moves of the game, the winning and losing functions stop working properly.
-
 
 class lines:   # class(partition,max_adj)
   import random
