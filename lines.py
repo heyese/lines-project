@@ -513,11 +513,15 @@ class GUI:
     def start(self,master,level_choice,line_number_choice,max_adj_choice):
       # Need to define how this button actually launches a lines game!!
       print "Level Choice : %s, Line Number Choice : %s, Max Adj Choice : %s" % (level_choice(),line_number_choice(),max_adj_choice())
+      game_root = tk.Tk()
+      game_root.title('Lines!!')
+      #GAME(game_root)
+      game_root.mainloop()
       return
       
 def main():
     root = tk.Tk()
-    root.title('Lines!!')
+    root.title('Lines Menu')
     GUI(root)
     root.mainloop()
     return
