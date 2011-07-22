@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import random
+import random, types
 import Tkinter as tk
 from functools import partial
 
@@ -45,6 +45,7 @@ class lines:   # class(partition,max_adj)
     # I think it's best to have as few attributes as possible and use methods to calculate what's asked for
     # based on these values when possible.
     self.max_adj = max_adj
+    self.top_line = sum(partition) + len(partition) - 1
     self.moves_history = []
     self.board = self.part2board(partition)
     return
@@ -102,6 +103,10 @@ class lines:   # class(partition,max_adj)
       random.shuffle(losing_moves)  #  This is so that we make a random winning move
       self.game_take_turn(losing_moves[0])
     else: return -1
+  
+  def game_make_move(self):
+    if self.game_make_winning_move() == -1: self.game_make_losing_move()
+    return
   
   def game_board_display(self):
     lines_crossed_off = [ line for move in self.moves_history for line in move ]
@@ -452,8 +457,6 @@ class GUI:
       self.frames = {}  # Will have a dictionary of frames
       self.choices = {}
       
-      #for menu in [ 'Level', 'Number of Lines', 'Max Adj']:
-      
       self.frames['Level'] = tk.Frame(master)
       self.frames['Level'].pack(side=tk.LEFT)
       self.frames[('Level','Menu')] = tk.Menubutton(self.frames['Level'],relief=tk.RAISED,borderwidth=1,text='Level')
@@ -506,6 +509,7 @@ class GUI:
       max_adj_choice = self.frames[('Max Adj','Menu')].choice.get
       button = tk.Button(self.frames['Start'],text='Start!!', activebackground='green',height = 2,command=partial(self.start,master,level_choice,line_number_choice,max_adj_choice))
       button.pack()
+
       
     def update(self,entry,menu):
       menu.choice.set(entry)
@@ -519,10 +523,59 @@ class GUI:
       game_root.mainloop()
       return
       
+class GAME:
+
+  buttons = {}  
+  def __init__(self, master, game):
+    game_frame = tk.Frame(master)
+    game_frame.pack()
+    button_frame = tk.Frame(game_frame)
+    button_frame.pack(side=tk.TOP)
+    for number in range(1,game.top_line+1):
+      # self.buttons[number] = [ button_reference, button background colour ]
+      colour = tk.StringVar()
+      colour.set('SystemButtonFace')
+      self.buttons[number] = [tk.Button(button_frame,height=5,width=5,text=number),colour]
+      button = self.buttons[number][0]
+      button.pack(side=tk.LEFT)
+      button.configure(bg=colour.get(),command = partial(self.cross_line,self.buttons[number]))
+    other_buttons_frame = tk.Frame(game_frame)
+    other_buttons_frame.pack(side=tk.TOP)
+    commit = tk.Button(other_buttons_frame,height=1,width=5,text='Commit',command = partial(self.take_turn,game))
+    commit.pack()
+  
+  def cross_line(self,button_params):
+    colour = button_params[1]
+    button = button_params[0]
+    if colour.get() == 'SystemButtonFace': colour.set('yellow')
+    elif colour.get() == 'yellow': colour.set('SystemButtonFace')
+    button.configure(bg=colour.get())
+  
+  def take_turn(self,game):
+    # Make a list of all the yellow coloured buttons
+    # if that list is in game.currents_moves(), change them all a different colour and disable them.
+    pressed_buttons = []
+    for number in range(1,game.top_line+1):
+      button_colour = self.buttons[number][1]
+      if button_colour.get() == 'yellow': pressed_buttons.append(number)
+    if pressed_buttons in game.game_current_moves():
+      for number in pressed_buttons:
+        self.buttons[number][1].set('black')
+        self.buttons[number][0].configure(bg=self.buttons[number][1].get(),state=tk.DISABLED)
+    return
+    
 def main():
     root = tk.Tk()
-    root.title('Lines Menu')
-    GUI(root)
+    # to be unhashed when we have the game sorted out
+    #root.title('Lines Menu')
+    #GUI(root)
+    
+    line_number_choice = 9
+    max_adj_choice = 2
+    game = lines([line_number_choice],max_adj_choice)
+    root.title('Lines!!')
+    GAME(root, game)
+    
     root.mainloop()
     return
 
