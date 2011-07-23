@@ -525,7 +525,7 @@ class GUI:
 class GAME:
 
   # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
-  colours = dict([('unpressed','SystemButtonFace'),('initial_press','yellow'),('confirmed_press','black')])
+  colours = dict([('unpressed','#EEE8CD'),('initial_press','#FFD700'),('confirmed_press','#000000')])
   buttons = {}
   other_buttons = {}
   # Not efficient, I guess, but I'm becoming paranoid about keeping my options open, so I prefer to set up
