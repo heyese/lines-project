@@ -105,6 +105,7 @@ class lines:   # class(partition,max_adj)
     else: return -1
   
   def game_make_move(self):
+    if len(self.game_current_moves()) == 0: return -1
     if self.game_make_winning_move() == -1: self.game_make_losing_move()
     return
   
@@ -510,72 +511,95 @@ class GUI:
       button = tk.Button(self.frames['Start'],text='Start!!', activebackground='green',height = 2,command=partial(self.start,master,level_choice,line_number_choice,max_adj_choice))
       button.pack()
 
-      
+    
     def update(self,entry,menu):
       menu.choice.set(entry)
     
     def start(self,master,level_choice,line_number_choice,max_adj_choice):
-      # Need to define how this button actually launches a lines game!!
-      print "Level Choice : %s, Line Number Choice : %s, Max Adj Choice : %s" % (level_choice(),line_number_choice(),max_adj_choice())
       game_root = tk.Tk()
       game_root.title('Lines!!')
-      #GAME(game_root)
+      game = lines([int(line_number_choice())],int(max_adj_choice()))
+      GAME(game_root,game)
       game_root.mainloop()
       return
       
 class GAME:
 
+  # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
+  colours = dict([('unpressed','SystemButtonFace'),('initial_press','yellow'),('confirmed_press','black')])
   buttons = {}  
   def __init__(self, master, game):
+    # Defining the colour scheme!
     game_frame = tk.Frame(master)
     game_frame.pack()
     button_frame = tk.Frame(game_frame)
     button_frame.pack(side=tk.TOP)
     for number in range(1,game.top_line+1):
-      # self.buttons[number] = [ button_reference, button background colour ]
+      # I am making a dictionary of dictionaries.  Each entry in 'buttons' is a dictionary containing the button variables.
+      # self.buttons keys are the numbers of the lines.
+      # Each individual line dictionary has: 'button - the button reference, 'colour' - the colour StringVar, 'pressed' - Boolean
+      self.buttons[number] = {}
+      button_dict = self.buttons[number]
+      # Add the colour of the button
       colour = tk.StringVar()
-      colour.set('SystemButtonFace')
-      self.buttons[number] = [tk.Button(button_frame,height=5,width=5,text=number),colour]
-      button = self.buttons[number][0]
-      button.pack(side=tk.LEFT)
-      button.configure(bg=colour.get(),command = partial(self.cross_line,self.buttons[number]))
+      colour.set(self.colours['unpressed'])
+      button_dict['colour'] = colour
+      # Add the button reference itself (and pack it)
+      button_dict['button'] = tk.Button(button_frame,height=5,width=5,text=number)
+      button_dict['button'].pack(side=tk.LEFT)
+      button_dict['button'].configure(bg=colour.get(),command = partial(self.cross_line,button_dict))
     other_buttons_frame = tk.Frame(game_frame)
     other_buttons_frame.pack(side=tk.TOP)
-    commit = tk.Button(other_buttons_frame,height=1,width=5,text='Commit',command = partial(self.take_turn,game))
-    commit.pack()
+    commit = tk.Button(other_buttons_frame,height=1,text='Make my move',command = partial(self.take_turn,game))
+    commit.pack(side=tk.TOP)
+    computer_turn = tk.Button(other_buttons_frame,height=1,text='Computer move',command = partial(self.computer_turn,game))
+    computer_turn.pack(side=tk.TOP)
   
-  def cross_line(self,button_params):
-    colour = button_params[1]
-    button = button_params[0]
-    if colour.get() == 'SystemButtonFace': colour.set('yellow')
-    elif colour.get() == 'yellow': colour.set('SystemButtonFace')
+  def cross_line(self,button_dict):
+    colour = button_dict['colour']
+    button = button_dict['button']
+    if colour.get() == self.colours['initial_press']: colour.set(self.colours['unpressed'])
+    else: colour.set(self.colours['initial_press'])
     button.configure(bg=colour.get())
   
+  def clear_initial_presses(self,game):
+    #  If you choose some kind of option (take computer turn, for example) when you're midway
+    # through a go and have tentatively pressed a few buttons, this function unpresses them.
+    pressed_buttons = [ number for number in self.buttons.keys() if self.buttons[number]['colour'].get() == self.colours['initial_press'] ]
+    for number in pressed_buttons:
+      colour = self.buttons[number]['colour']
+      colour.set(self.colours['unpressed'])
+      button = self.buttons[number]['button']
+      button.configure(bg=colour.get())
+    return
+
+  def computer_turn(self,game):
+    self.clear_initial_presses(game)
+    exit_code = game.game_make_move()  # This calls the function to take the move and sets the exit code
+    if exit_code != -1:  # ie. If there was a move to be made and the game hasn't already ended ...
+      move_made = game.moves_history[-1]
+      for number in move_made:
+        colour = self.buttons[number]['colour']
+        colour.set(self.colours['confirmed_press'])
+        self.buttons[number]['button'].configure(bg=colour.get(),state=tk.DISABLED)
+    return
+    
   def take_turn(self,game):
-    # Make a list of all the yellow coloured buttons
-    # if that list is in game.currents_moves(), change them all a different colour and disable them.
-    pressed_buttons = []
-    for number in range(1,game.top_line+1):
-      button_colour = self.buttons[number][1]
-      if button_colour.get() == 'yellow': pressed_buttons.append(number)
+    # Make a list of all the pressed buttons
+    # if that list is in game.currents_moves(), commit to the presses.
+    pressed_buttons = [ number for number in self.buttons.keys() if self.buttons[number]['colour'].get() == self.colours['initial_press'] ]
     if pressed_buttons in game.game_current_moves():
+      game.game_take_turn(pressed_buttons)   # This take the turn in the actual game object
       for number in pressed_buttons:
-        self.buttons[number][1].set('black')
-        self.buttons[number][0].configure(bg=self.buttons[number][1].get(),state=tk.DISABLED)
+        colour = self.buttons[number]['colour']
+        colour.set(self.colours['confirmed_press'])
+        self.buttons[number]['button'].configure(bg=colour.get(),state=tk.DISABLED)
     return
     
 def main():
     root = tk.Tk()
-    # to be unhashed when we have the game sorted out
-    #root.title('Lines Menu')
-    #GUI(root)
-    
-    line_number_choice = 9
-    max_adj_choice = 2
-    game = lines([line_number_choice],max_adj_choice)
-    root.title('Lines!!')
-    GAME(root, game)
-    
+    root.title('Lines Menu')
+    GUI(root)
     root.mainloop()
     return
 
