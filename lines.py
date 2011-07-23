@@ -525,12 +525,12 @@ class GUI:
 class GAME:
 
   # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
-  colours = dict([('unpressed','#EEE8CD'),('initial_press','#FFD700'),('confirmed_press','#000000')])
+  colours = dict([('unpressed','#FFFFF0'),('initial_press','#FFD700'),('confirmed_press','#000000')])
   buttons = {}
   other_buttons = {}
   # Not efficient, I guess, but I'm becoming paranoid about keeping my options open, so I prefer to set up
   # a dict even if it's not clear I'll need one.
-  menu_options = dict([('Suggest winning move',''),(2,''),(3,'')])
+  menu_options = dict([('Suggest winning move',''),('Give all winning moves',''),('Can I win?',''),('Give all losing moves',''),('Give the move history',''),('Give the move history, indicating winners and losers','')])
   def __init__(self, master, game):
     # Defining the colour scheme!
     game_frame = tk.Frame(master)
@@ -573,23 +573,73 @@ class GAME:
     self.other_buttons['computer_turn'] = {}
     self.other_buttons['computer_turn']['button'] = tk.Button(other_buttons_frame,height=1,text='Computer move',command = partial(self.computer_turn,game))
     self.other_buttons['computer_turn']['button'].pack(side=tk.RIGHT)
+    
+    # Add a text widget so the game has a way of giving information to the player
+    text_frame = tk.Frame(game_frame)
+    text_frame.pack(side=tk.BOTTOM)
+    
+    self.other_buttons['info'] = {}
+    self.other_buttons['info']['button'] = tk.Text(text_frame,height=2,wrap=tk.WORD,width=35,state=tk.DISABLED,bg=self.colours['unpressed'])
+    self.other_buttons['info']['button'].pack(side=tk.BOTTOM)
   
   def menu_choice(self,entry,game):
-    print "You chose %s" % entry
+    winning_moves = game.game_winning_moves()
+    losing_moves = game.game_losing_moves()
     if entry == 'Suggest winning move':
+        
       # Clear any partially pressed buttons
       self.clear_initial_presses()
-      winning_moves = game.game_winning_moves()
       random.shuffle(winning_moves)
-      if len(winning_moves) != 0:
+      if len(game.game_current_moves()) == 0:
+        self.print_text("The game is already won!\n")
+      elif len(winning_moves) != 0:
         winning_move = winning_moves[0]
+        self.print_text("A winning move is %s.\n" % str(winning_move))
         for button_number in winning_move:
           button_dict = self.buttons[button_number]
           self.cross_line(button_dict)
       else:
-        print "No winning moves available"
+        self.print_text("No winning move available.\n")
+        
+    elif entry == 'Give all winning moves':
+      if len(game.game_current_moves()) == 0:
+        self.print_text("The game is already won!\n")
+      elif len(winning_moves) != 0: self.print_text("The winning moves are: %s.\n" % str(winning_moves))
+      else: self.print_text("There are no winning moves.\n")
+    
+    elif entry == 'Can I win?':
+      if len(game.game_current_moves()) == 0:
+        self.print_text("The game is already won!\n")
+      elif len(winning_moves) != 0: self.print_text("Yes you can!!\n")
+      else: self.print_text("Not against me, you can't ...\n")
+      
+    elif entry == 'Give all losing moves':
+      if len(game.game_current_moves()) == 0:
+        self.print_text("The game is already won!\n")
+      elif len(losing_moves) != 0: self.print_text("The losing moves are: %s.\n" % str(losing_moves))
+      else: self.print_text("There are no losing moves.\n")
+    
+    elif entry == 'Give the move history':
+      if len(game.moves_history) == 0: self.print_text("No moves have been made so far.\n")
+      else: self.print_text("Moves so far: %s.\n" % str(game.moves_history))
+    
+    elif entry == 'Give the move history, indicating winners and losers':
+      pass   # This is a cool one - I'd like to have losing moves in red and winning ones in green!
+      
+    # Frustratingly, the window doesn't seem to pan down as text is added
+    # If I pan to the end, I miss the first line of the last message if it's a two line message
+    # Going to 'end - 2 lines' seems to work!
+    self.other_buttons['info']['button'].yview('end - 2 lines')
+
     return
   
+  #  This is a function that prints some text to the text widget
+  def print_text(self,text):
+    self.other_buttons['info']['button'].configure(state=tk.NORMAL)
+    self.other_buttons['info']['button'].insert(tk.END,text,)
+    self.other_buttons['info']['button'].configure(state=tk.DISABLED)
+    return
+    
   def cross_line(self,button_dict):
     colour = button_dict['colour']
     button = button_dict['button']
@@ -655,8 +705,12 @@ class GAME:
       # this function finishes and Tkinter gets back to its main loop.
       
       # Calculating appropriate text characters ...
-      if loser == 'computer': text = 'You win'
-      else: text = 'I win'
+      if loser == 'computer':
+        text = 'You win'
+        self.print_text("Ok, ok - you beat me!\n")
+      else:
+        text = 'I win'
+        self.print_text("It must suck to be you ...\n")
       message = {}
       if len(text) <= len(range(game.top_line)):  # Make sure there's actually enough buttons for the message
         text = text.center(game.top_line)         # pad the message with spaces on the outside
