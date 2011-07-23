@@ -2,7 +2,7 @@
 import random, types
 import Tkinter as tk
 from functools import partial
-
+'''
 # List the defined functions
 print "moves_list_special(total,max_adj)"
 print "moves_list(board,max_adj)"
@@ -18,7 +18,7 @@ print "winning_sub_parts(partition,max_adj)"
 print "losing_sub_parts(partition,max_adj)"
 print "part2board(partition,total)"
 print "jumble(partition)"
-
+'''
   # PROVED RESULT: p a partition, then p union {I} is a winner if and only if p union {IIII} is a winner
   # Therefore we can always repalce the 4s in a partition with ones
   
@@ -527,11 +527,13 @@ class GAME:
 
   # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
   colours = dict([('unpressed','SystemButtonFace'),('initial_press','yellow'),('confirmed_press','black')])
-  buttons = {}  
+  buttons = {}
+  other_buttons = {}
   def __init__(self, master, game):
     # Defining the colour scheme!
     game_frame = tk.Frame(master)
     game_frame.pack()
+    self.game_frame = game_frame
     button_frame = tk.Frame(game_frame)
     button_frame.pack(side=tk.TOP)
     for number in range(1,game.top_line+1):
@@ -550,10 +552,10 @@ class GAME:
       button_dict['button'].configure(bg=colour.get(),command = partial(self.cross_line,button_dict))
     other_buttons_frame = tk.Frame(game_frame)
     other_buttons_frame.pack(side=tk.TOP)
-    commit = tk.Button(other_buttons_frame,height=1,text='Make my move',command = partial(self.take_turn,game))
-    commit.pack(side=tk.TOP)
-    computer_turn = tk.Button(other_buttons_frame,height=1,text='Computer move',command = partial(self.computer_turn,game))
-    computer_turn.pack(side=tk.TOP)
+    self.other_buttons['commit'] = tk.Button(other_buttons_frame,height=1,text='Make my move',command = partial(self.take_turn,game))
+    self.other_buttons['commit'].pack(side=tk.LEFT)
+    self.other_buttons['computer_turn'] = tk.Button(other_buttons_frame,height=1,text='Computer move',command = partial(self.computer_turn,game))
+    self.other_buttons['computer_turn'].pack(side=tk.RIGHT)
   
   def cross_line(self,button_dict):
     colour = button_dict['colour']
@@ -578,10 +580,13 @@ class GAME:
     exit_code = game.game_make_move()  # This calls the function to take the move and sets the exit code
     if exit_code != -1:  # ie. If there was a move to be made and the game hasn't already ended ...
       move_made = game.moves_history[-1]
+      self.other_buttons['commit'].configure(relief=tk.RAISED)
+      self.other_buttons['computer_turn'].configure(relief=tk.SUNKEN)
       for number in move_made:
         colour = self.buttons[number]['colour']
         colour.set(self.colours['confirmed_press'])
         self.buttons[number]['button'].configure(bg=colour.get(),state=tk.DISABLED)
+    self.has_game_finished(game,'computer')
     return
     
   def take_turn(self,game):
@@ -590,12 +595,56 @@ class GAME:
     pressed_buttons = [ number for number in self.buttons.keys() if self.buttons[number]['colour'].get() == self.colours['initial_press'] ]
     if pressed_buttons in game.game_current_moves():
       game.game_take_turn(pressed_buttons)   # This take the turn in the actual game object
+      self.other_buttons['commit'].configure(relief=tk.SUNKEN)
+      self.other_buttons['computer_turn'].configure(relief=tk.RAISED)
       for number in pressed_buttons:
         colour = self.buttons[number]['colour']
         colour.set(self.colours['confirmed_press'])
         self.buttons[number]['button'].configure(bg=colour.get(),state=tk.DISABLED)
+    self.has_game_finished(game,'player')
     return
-    
+   
+  def has_game_finished(self,game,loser):
+    if len(game.game_current_moves()) == 0:
+      # Game has been lost by loser
+      # Wish to make all the buttons flash randomly and for 'You won!' or 'I won!' to appear as appropriate
+      
+      # First, disable the take turn buttons
+      self.other_buttons['commit'].configure(state=tk.DISABLED)
+      self.other_buttons['computer_turn'].configure(state=tk.DISABLED)
+      
+      # Now shuffle a list of the lines
+      line_order = [ line for line in range(1,game.top_line+1) ]
+      random.shuffle(line_order)
+      
+      # Now, in this shuffled order, make each button flash,assign a random colour and the appropriate text character.
+      # Not I also have to force an update of the game_frame here, else the colours would only update when
+      # this function finishes and Tkinter gets back to its main loop.
+      
+      # Calculating appropriate text characters ...
+      if loser == 'computer': text = 'You won'
+      else: text = 'I won'
+      message = {}
+      if len(text) <= len(range(game.top_line)):  # Make sure there's actually enough buttons for the message
+        text = text.center(game.top_line)         # pad the message with spaces on the outside
+        for i in range(1,game.top_line+1):
+          message[i] = text[i-1]                  # Want line number 1 to hold first character of message - that is, text[0] ...
+      else: 
+        for i in range(1,game.top_line+1):
+          message[i] = ''
+      for line in line_order:
+        # Make line flash and assign a random colour - button has to be active to flash!
+        self.buttons[line]['button'].configure(state=tk.ACTIVE)
+        self.buttons[line]['button'].flash()
+        rcolour = '#' + "".join(["%02x"%random.randrange(256) for x in range(3)])  # Saw this line on the net!  Seems pretty clear.
+        self.buttons[line]['button'].configure(state=tk.DISABLED,text=message[line],bg=rcolour)
+        self.game_frame.update()
+        
+      print line_order
+      if loser == 'player': print "I won!"
+      else: print "You won!"
+    return
+   
 def main():
     root = tk.Tk()
     root.title('Lines Menu')
