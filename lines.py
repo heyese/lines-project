@@ -608,7 +608,7 @@ class GAME:
     elif entry == 'Give all winning moves':
       if len(game.game_current_moves()) == 0:
         self.print_text("The game is already won!\n")
-      elif len(winning_moves) != 0: self.print_text("The winning moves are: %s.\n" % str(winning_moves))
+      elif len(winning_moves) != 0: self.print_text("The winning moves are: %s.\n" % ', '.join([str(entry) for entry in winning_moves]))
       else: self.print_text("There are no winning moves.\n")
     
     elif entry == 'Can I win?':
@@ -620,7 +620,7 @@ class GAME:
     elif entry == 'Give all losing moves':
       if len(game.game_current_moves()) == 0:
         self.print_text("The game is already won!\n")
-      elif len(losing_moves) != 0: self.print_text("The losing moves are: %s.\n" % str(losing_moves))
+      elif len(losing_moves) != 0: self.print_text("The losing moves are: %s.\n" % ', '.join([str(entry) for entry in losing_moves]))
       else: self.print_text("There are no losing moves.\n")
     
     elif entry == 'Give the move history':
