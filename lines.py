@@ -556,6 +556,8 @@ class GAME:
       button_dict['button'].configure(bg=colour.get(),command = partial(self.cross_line,button_dict))
     other_buttons_frame = tk.Frame(game_frame)
     other_buttons_frame.pack(side=tk.TOP)
+    text_frame = tk.Frame(master)
+    text_frame.pack(side=tk.BOTTOM,fill=tk.BOTH, expand=tk.YES)
 
     # Add the button to press when you make your own move
     self.other_buttons['commit'] = {}
@@ -577,14 +579,12 @@ class GAME:
     self.other_buttons['computer_turn']['button'].pack(side=tk.RIGHT)
     
     # Add a text widget so the game has a way of giving information to the player
-    text_frame = tk.Frame(game_frame)
-    text_frame.pack(side=tk.BOTTOM)
     width = 5 * game.top_line  # Wish the text widget to be as wide as the buttons
     self.other_buttons['info'] = {}
     self.other_buttons['info']['button'] = tk.Text(text_frame,height=2,wrap=tk.WORD,width=width,state=tk.DISABLED,bg=self.colours['unpressed'])
     self.other_buttons['info']['button'].tag_config("red",foreground="red")
     self.other_buttons['info']['button'].tag_config("green",foreground="green")    
-    self.other_buttons['info']['button'].pack(side=tk.BOTTOM)
+    self.other_buttons['info']['button'].pack(side=tk.BOTTOM,fill=tk.BOTH, expand = tk.YES)
   
   def menu_choice(self,entry,game):
     winning_moves = game.game_winning_moves()
@@ -727,6 +727,7 @@ class GAME:
       else:
         text = 'I win'
         self.print_text("It must suck to be you ...\n")
+      self.other_buttons['info']['button'].yview('end - 2 lines')
       message = {}
       if len(text) <= len(range(game.top_line)):  # Make sure there's actually enough buttons for the message
         text = text.center(game.top_line)         # pad the message with spaces on the outside
