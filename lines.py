@@ -577,9 +577,9 @@ class GAME:
     # Add a text widget so the game has a way of giving information to the player
     text_frame = tk.Frame(game_frame)
     text_frame.pack(side=tk.BOTTOM)
-    
+    width = 5 * game.top_line  # Wish the text widget to be as wide as the buttons
     self.other_buttons['info'] = {}
-    self.other_buttons['info']['button'] = tk.Text(text_frame,height=2,wrap=tk.WORD,width=35,state=tk.DISABLED,bg=self.colours['unpressed'])
+    self.other_buttons['info']['button'] = tk.Text(text_frame,height=2,wrap=tk.WORD,width=width,state=tk.DISABLED,bg=self.colours['unpressed'])
     self.other_buttons['info']['button'].pack(side=tk.BOTTOM)
   
   def menu_choice(self,entry,game):
