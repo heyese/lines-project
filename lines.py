@@ -582,6 +582,8 @@ class GAME:
     width = 5 * game.top_line  # Wish the text widget to be as wide as the buttons
     self.other_buttons['info'] = {}
     self.other_buttons['info']['button'] = tk.Text(text_frame,height=2,wrap=tk.WORD,width=width,state=tk.DISABLED,bg=self.colours['unpressed'])
+    self.other_buttons['info']['button'].tag_config("red",foreground="red")
+    self.other_buttons['info']['button'].tag_config("green",foreground="green")    
     self.other_buttons['info']['button'].pack(side=tk.BOTTOM)
   
   def menu_choice(self,entry,game):
@@ -623,10 +625,18 @@ class GAME:
     
     elif entry == 'Give the move history':
       if len(game.moves_history) == 0: self.print_text("No moves have been made so far.\n")
-      else: self.print_text("Moves so far: %s.\n" % str([ entry[0] for entry in game.moves_history ]))
+      else: self.print_text("Moves so far: %s.\n" % ', '.join([ str(entry[0]) for entry in game.moves_history ]))
     
     elif entry == 'Give the move history, indicating winners and losers':
-      pass   # This is a cool one - I'd like to have losing moves in red and winning ones in green!
+      # This is a cool one - I'd like to have losing moves in red and winning ones in green!
+      if len(game.moves_history) == 0: self.print_text("No moves have been made so far.\n")
+      else:
+        self.print_text("Moves so far:")
+        for (move,status) in game.moves_history:
+          if status == 'winner': self.print_text(" %s" % str(move), 'green')
+          else: self.print_text(" %s" % str(move), 'red')
+          if (move,status) != game.moves_history[-1] : self.print_text(",")
+        self.print_text(".\n")
       
     # Frustratingly, the window doesn't seem to pan down as text is added
     # If I pan to the end, I miss the first line of the last message if it's a two line message
@@ -636,9 +646,13 @@ class GAME:
     return
   
   #  This is a function that prints some text to the text widget
-  def print_text(self,text):
+  def print_text(self,text,colour='default'):
+    
     self.other_buttons['info']['button'].configure(state=tk.NORMAL)
-    self.other_buttons['info']['button'].insert(tk.END,text,)
+    if colour != 'default':
+      if colour == 'red': self.other_buttons['info']['button'].insert(tk.END,text,'red')
+      elif colour == 'green': self.other_buttons['info']['button'].insert(tk.END,text,'green')
+    else: self.other_buttons['info']['button'].insert(tk.END,text,)
     self.other_buttons['info']['button'].configure(state=tk.DISABLED)
     return
     
