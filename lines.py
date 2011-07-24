@@ -536,10 +536,10 @@ class GAME:
   def __init__(self, master, game):
     # Defining the colour scheme!
     game_frame = tk.Frame(master)
-    game_frame.pack()
+    game_frame.pack(fill=tk.BOTH, expand=tk.YES)
     self.game_frame = game_frame
     button_frame = tk.Frame(game_frame)
-    button_frame.pack(side=tk.TOP)
+    button_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.YES)
     for number in range(1,game.top_line+1):
       # I am making a dictionary of dictionaries.  Each entry in 'buttons' is a dictionary containing the button variables.
       # self.buttons keys are the numbers of the lines.
@@ -551,22 +551,22 @@ class GAME:
       colour.set(self.colours['unpressed'])
       button_dict['colour'] = colour
       # Add the button reference itself (and pack it)
-      button_dict['button'] = tk.Button(button_frame,height=5,width=5,text=number)
-      button_dict['button'].pack(side=tk.LEFT)
+      button_dict['button'] = tk.Button(button_frame,height=5,text=number)
+      button_dict['button'].pack(side=tk.LEFT,fill=tk.BOTH, expand=tk.YES)
       button_dict['button'].configure(bg=colour.get(),command = partial(self.cross_line,button_dict))
     other_buttons_frame = tk.Frame(game_frame)
-    other_buttons_frame.pack(side=tk.TOP)
+    other_buttons_frame.pack(side=tk.TOP, fill=tk.BOTH,expand=tk.YES)
     text_frame = tk.Frame(master)
-    text_frame.pack(side=tk.BOTTOM,fill=tk.BOTH, expand=tk.YES)
+    text_frame.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=tk.YES)
 
     # Add the button to press when you make your own move
     self.other_buttons['commit'] = {}
     self.other_buttons['commit']['button'] = tk.Button(other_buttons_frame,height=1,text='Make my move',command = partial(self.take_turn,game))
-    self.other_buttons['commit']['button'].pack(side=tk.LEFT)
+    self.other_buttons['commit']['button'].pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES)
     # Add a small menu button
     self.other_buttons['?'] = {}
     self.other_buttons['?']['button'] = tk.Menubutton(other_buttons_frame,relief=tk.RAISED,borderwidth=1,text='?')
-    self.other_buttons['?']['button'].pack(side=tk.LEFT)
+    self.other_buttons['?']['button'].pack(side=tk.LEFT,fill=tk.Y)
     self.other_buttons['?']['options'] = tk.Menu(self.other_buttons['?']['button'], tearoff=0)
     for entry in self.menu_options.keys():
       self.other_buttons['?']['options'].add_command(label=entry, command = partial(self.menu_choice,entry,game))
@@ -576,7 +576,7 @@ class GAME:
     # Add a button to ask the computer to take a go
     self.other_buttons['computer_turn'] = {}
     self.other_buttons['computer_turn']['button'] = tk.Button(other_buttons_frame,height=1,text='Computer move',command = partial(self.computer_turn,game))
-    self.other_buttons['computer_turn']['button'].pack(side=tk.RIGHT)
+    self.other_buttons['computer_turn']['button'].pack(side=tk.LEFT,fill=tk.BOTH,expand=tk.YES)
     
     # Add a text widget so the game has a way of giving information to the player
     width = 5 * game.top_line  # Wish the text widget to be as wide as the buttons
