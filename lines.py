@@ -56,7 +56,8 @@ class lines:   # class(partition,max_adj)
   def game_take_turn(self,move_taken):
     moves = self.moves_list(self.board,self.max_adj)
     if move_taken not in moves: return -1
-    self.moves_history.append(move_taken)
+    if move_taken in self.game_winning_moves(): self.moves_history.append((move_taken,'winner'))
+    else: self.moves_history.append((move_taken,'loser'))
     self.board = self.moves_to_board(self.take_turn(move_taken,moves))
     return
     
@@ -109,7 +110,8 @@ class lines:   # class(partition,max_adj)
     return
   
   def game_board_display(self):
-    lines_crossed_off = [ line for move in self.moves_history for line in move ]
+    # This next line has gotten more complicated since I've decided each entry in moves_history should be a tuple (labelled 'winner' or 'loser')
+    lines_crossed_off = [ line for move in [ entry[0] for entry in self.moves_history ] for line in move ]
     total_lines = sorted(lines_crossed_off + self.board)
     graphic = []
     for i in total_lines:
@@ -621,7 +623,7 @@ class GAME:
     
     elif entry == 'Give the move history':
       if len(game.moves_history) == 0: self.print_text("No moves have been made so far.\n")
-      else: self.print_text("Moves so far: %s.\n" % str(game.moves_history))
+      else: self.print_text("Moves so far: %s.\n" % str([ entry[0] for entry in game.moves_history ]))
     
     elif entry == 'Give the move history, indicating winners and losers':
       pass   # This is a cool one - I'd like to have losing moves in red and winning ones in green!
@@ -662,7 +664,7 @@ class GAME:
     self.clear_initial_presses()
     exit_code = game.game_make_move()  # This calls the function to take the move and sets the exit code
     if exit_code != -1:  # ie. If there was a move to be made and the game hasn't already ended ...
-      move_made = game.moves_history[-1]
+      move_made = game.moves_history[-1][0]
       self.other_buttons['commit']['button'].configure(relief=tk.RAISED)
       self.other_buttons['computer_turn']['button'].configure(relief=tk.SUNKEN)
       for number in move_made:
