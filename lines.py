@@ -47,6 +47,10 @@ class lines:   # class(partition,max_adj)
     self.top_line = sum(partition) + len(partition) - 1
     self.moves_history = []
     self.board = self.part2board(partition)
+    self.win_or_lose_hash={}
+    self.win_or_lose_v2_hash = {}
+    self.poss_partitions_hash={}
+    self.poss_partitions_v2_hash = {}
     return
   
   def game_current_moves(self):
@@ -271,7 +275,6 @@ class lines:   # class(partition,max_adj)
     return sorted_partitions
 
   # In the function below, I want to add a hash table functionality
-  poss_partitions_hash={}
   def poss_partitions(self, partition,max_adj_lines):
     poss_partitions_hash = self.poss_partitions_hash
     if tuple(sorted(partition)) in poss_partitions_hash: return list(poss_partitions_hash[tuple(sorted(partition))])
@@ -337,7 +340,6 @@ class lines:   # class(partition,max_adj)
       else: break
     return partition
     
-  poss_partitions_v2_hash = {}
   def poss_partitions_v2(self, partition,max_adj_lines):
     # Due to the results listed at the top, we can replace 4s with 1s and then get rid of pairs of ones.
       
@@ -370,7 +372,6 @@ class lines:   # class(partition,max_adj)
     poss_partitions_v2_hash[tuple(reduced_part)] = sorted(partitions_list)      
     return sorted(partitions_list)
     
-  win_or_lose_hash={}
   def win_or_lose(self, partition, max_adj):
     win_or_lose_hash = self.win_or_lose_hash
     # Right guys, this is the daddy.  Given a position, can I win?
@@ -394,7 +395,6 @@ class lines:   # class(partition,max_adj)
         return 1  # If at least one sub-partition is a loser, this is a winner.
     return -1      # If all sub_partitions are winners, this is a loser.
 
-  win_or_lose_v2_hash = {}
   def win_or_lose_v2(self, partition, max_adj):
     win_or_lose_v2_hash = self.win_or_lose_v2_hash
     # Right guys, this is the daddy.  Given a position, can I win?
@@ -519,22 +519,23 @@ class GUI:
     def start(self,master,level_choice,line_number_choice,max_adj_choice):
       game_root = tk.Tk()
       game_root.title('Lines!!')
-      game = lines([int(line_number_choice())],int(max_adj_choice()))
-      GAME(game_root,game)
+      games = []  # There can be more than one game on the go at any one time, so we make a list of them
+      games.append(lines([int(line_number_choice())],int(max_adj_choice())))
+      GAME(game_root,games[-1])
       game_root.mainloop()
       return
       
 class GAME:
 
-  # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
-  colours = dict([('unpressed','#FFFFF0'),('initial_press','#FFD700'),('confirmed_press','#000000')])
-  buttons = {}
-  other_buttons = {}
   # Not efficient, I guess, but I'm becoming paranoid about keeping my options open, so I prefer to set up
   # a dict even if it's not clear I'll need one.
-  menu_options = dict([('Suggest winning move',''),('Give all winning moves',''),('Can I win?',''),('Give all losing moves',''),('Give the move history',''),('Give the move history, indicating winners and losers','')])
+  
   def __init__(self, master, game):
-    # Defining the colour scheme!
+    self.menu_options = dict([('Suggest winning move',''),('Give all winning moves',''),('Can I win?',''),('Give all losing moves',''),('Give the move history',''),('Give the move history, indicating winners and losers','')])
+    self.other_buttons = {}
+    self.buttons = {}
+    # Colour scheme!  The way I've made it, the buttons must have different colours for their 3 different states
+    self.colours = dict([('unpressed','#FFFFF0'),('initial_press','#FFD700'),('confirmed_press','#000000')])
     game_frame = tk.Frame(master)
     game_frame.pack(fill=tk.BOTH, expand=tk.YES)
     self.game_frame = game_frame
@@ -608,7 +609,10 @@ class GAME:
     elif entry == 'Give all winning moves':
       if len(game.game_current_moves()) == 0:
         self.print_text("The game is already won!\n")
-      elif len(winning_moves) != 0: self.print_text("The winning moves are: %s.\n" % ', '.join([str(entry) for entry in winning_moves]))
+      elif len(winning_moves) != 0:
+        #print game.game_losing_moves()
+        #print game.game_winning_moves()
+        self.print_text("The winning moves are: %s.\n" % ', '.join([str(entry) for entry in winning_moves]))
       else: self.print_text("There are no winning moves.\n")
     
     elif entry == 'Can I win?':
